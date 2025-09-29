@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Mono GlaShyiz — indie game developer. Portfolio and projects, including The Forgotten." />
+  <title>Mono GlaShyiz — Portfolio</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Mono GlaShyiz — Portfolio">
+  <meta property="og:description" content="Indie game developer. Atmospheric worlds and playable demos.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://i.postimg.cc/FsHDJxdj/976c5dc6-81a4-4eaa-b5f6-0e119c5591d8.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bg: #0a0b0d;
+      --bg-elev: #0f1115;
+      --text: #e8eef5;
+      --muted: #9aa4b2;
+      --accent: #69f0ae; /* neon brand */
+      --accent-2: #53e0ff;
+      --card-border: rgba(255,255,255,0.06);
+      --glow: rgba(105,240,174,0.25);
+      --radius: 16px;
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* Reset & base */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    img{ display:block; max-width:100%; }
+    a{ color: inherit; text-decoration: none; }
+    button{ font: inherit; color: inherit; }
+
+    /* Fullscreen starfield canvas */
+    canvas#stars{
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Soft vignette & cursor glow */
+    .vignette{
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(1200px 600px at var(--mx, 50%) var(--my, 50%), rgba(105,240,174,0.08), transparent 50%),
+                  radial-gradient(900px 450px at var(--mx, 50%) var(--my, 50%), rgba(83,224,255,0.06), transparent 50%),
+                  radial-gradient(60% 80% at 50% 100%, rgba(255,255,255,0.05), transparent 70%);
+      z-index: 1;
+      transition: background 0.2s ease-out;
+    }
+
+    /* Containers */
+    .container{
+      width: min(1100px, 92vw);
+      margin: 0 auto;
+    }
+
+    /* HERO */
+    .hero{
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 80px 0 40px;
+    }
+    .hero-inner{
+      width: 100%;
+      display: grid;
+      justify-items: center;
+      gap: 26px;
+      text-align: center;
+    }
+
+    /* Avatar (square) — pops and floats slightly */
+    .avatar{
+      width: 156px;
+      height: 156px;
+      object-fit: cover;
+      border-radius: 10px; /* set 0 for perfect square corners */
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(24px) scale(0.96);
+      opacity: 0;
+      filter: blur(6px);
+      animation: avatarPop 900ms 300ms cubic-bezier(.2,.8,.2,1) forwards,
+                 avatarFloat 6s 1.2s ease-in-out infinite alternate;
+      will-change: transform, filter, opacity;
+    }
+    @keyframes avatarPop{
+      to { transform: translateY(-10px) scale(1); opacity: 1; filter: blur(0); }
+    }
+    @keyframes avatarFloat{
+      from{ transform: translateY(-10px); }
+      to  { transform: translateY(-4px); }
+    }
+
+    /* Brand word — per-letter reveal */
+    .brand{
+      font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-size: clamp(36px, 6vw, 72px);
+      line-height: 0.95;
+      display: inline-block;
+      position: relative;
+      isolation: isolate;
+      text-shadow: 0 0 18px rgba(105,240,174,0.18);
+    }
+    .brand .char{
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(26px) scale(.98);
+      filter: blur(6px);
+    }
+    .brand .char.revealed{
+      animation: charIn 700ms cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    @keyframes charIn{
+      20% { filter: blur(2px); }
+      to { opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    .tagline{
+      color: var(--muted);
+      max-width: 750px;
+      font-size: clamp(14px, 1.6vw, 18px);
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 700ms 700ms ease-out forwards;
+    }
+    @keyframes fadeUp{
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* CTA buttons */
+    .cta-row{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 10px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 700ms 820ms ease-out forwards;
+    }
+    .btn{
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+      cursor: pointer;
+    }
+    .btn:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 0 0 6px var(--glow);
+    }
+    .btn .dot{
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* Sections */
+    .section{
+      position: relative;
+      z-index: 2;
+      padding: 48px 0 90px;
+    }
+    .section-title{
+      font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+      font-size: clamp(22px, 3.2vw, 32px);
+      font-weight: 600;
+      letter-spacing: .02em;
+      margin-bottom: 16px;
+    }
+    .section-sub{
+      color: var(--muted);
+      margin-bottom: 26px;
+      max-width: 720px;
+    }
+
+    .projects-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    @media (min-width: 720px){
+      .projects-grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .project-card{
+      position: relative;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      overflow: clip;
+      transform-style: preserve-3d;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      box-shadow: var(--shadow-lg);
+      will-change: transform;
+    }
+    .project-card:hover{
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 20px 40px rgba(0,0,0,.55), 0 0 0 8px var(--glow);
+    }
+    .project-media{
+      position: relative;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+    }
+    .project-media img{
+      position:absolute; inset:0; width:100%; height:100%; object-fit: cover;
+      filter: saturate(1.05) contrast(1.05);
+      transform: scale(1.02);
+      transition: transform .5s ease;
+    }
+    .project-card:hover .project-media img{ transform: scale(1.06); }
+
+    .project-badge{
+      position: absolute;
+      left: 12px; top: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: .06em;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .project-body{
+      padding: 16px 16px 18px;
+      display: grid; gap: 10px;
+    }
+    .project-title{
+      font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+      font-size: 20px; font-weight: 600; letter-spacing: .01em;
+    }
+    .project-text{ color: var(--muted); }
+
+    .project-actions{
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px;
+    }
+    .btn-ghost, .btn-solid{
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 12px; font-weight: 600; letter-spacing: .02em;
+      transition: transform .15s ease, box-shadow .2s ease, background .3s ease, border-color .2s ease;
+      border: 1px solid var(--card-border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      backdrop-filter: blur(6px);
+    }
+    .btn-solid{
+      background: linear-gradient(180deg, rgba(105,240,174,0.18), rgba(105,240,174,0.08));
+      border-color: rgba(105,240,174,0.35);
+      box-shadow: inset 0 0 0 1px rgba(105,240,174,0.25);
+    }
+    .btn-ghost:hover, .btn-solid:hover{ transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 0 0 6px var(--glow); }
+    .btn-solid svg{ flex: 0 0 auto; }
+
+    /* Project details (like your example) */
+    .project-details{
+      margin-top: 28px;
+      display: grid; gap: 14px;
+      border: 1px dashed rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+    .shots{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .shots img{ width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 10px; border: 1px solid var(--card-border); }
+
+    /* Footer */
+    footer{
+      position: relative;
+      z-index: 2;
+      padding: 56px 0 80px;
+      color: var(--muted);
+    }
+    .socials{
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    }
+    .social-link{
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      backdrop-filter: blur(6px);
+    }
+    .social-link:hover{ transform: translateY(-2px); border-color: rgba(255,255,255,0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 0 0 6px var(--glow); }
+    .divider{
+      height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      margin: 30px 0;
+    }
+    .copyright{
+      margin-top:16px; color:var(--muted); font-size:14px;
+    }
+
+    /* Accessibility / reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      *, *::before, *::after{ animation: none !important; transition: none !important; }
+      .vignette{ background: radial-gradient(60% 80% at 50% 100%, rgba(255,255,255,0.04), transparent 70%); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Starfield background -->
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container hero-inner">
+      <!-- Avatar -->
+      <img
+        class="avatar"
+        src="https://i.postimg.cc/FsHDJxdj/976c5dc6-81a4-4eaa-b5f6-0e119c5591d8.png"
+        width="156" height="156"
+        alt="Mono GlaShyiz avatar"
+        fetchpriority="high"
+        decoding="async"
+      />
+
+      <!-- Brand per-letter -->
+      <h1 class="brand" aria-label="Mono GlaShyiz">
+        <span class="brand-text">Mono&nbsp;GlaShyiz</span>
+      </h1>
+
+      <p class="tagline">Indie game developer. I craft atmospheric worlds where mystery meets action.</p>
+
+      <nav class="cta-row" aria-label="Primary actions">
+        <a class="btn" href="#projects"><span class="dot"></span>Projects</a>
+        <a class="btn" href="#contact"><span class="dot"></span>Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- PROJECTS -->
+  <main id="projects" class="section">
+    <div class="container">
+      <h2 class="section-title">Projects</h2>
+
+      <div class="projects-grid">
+        <!-- The Forgotten card -->
+        <article class="project-card" data-tilt>
+          <div class="project-media" aria-hidden="true">
+            <img src="https://i.imgur.com/GmnAaIj.png" alt="The Forgotten — gameplay still" loading="lazy" decoding="async">
+            <span class="project-badge">Horror‑Psychological Horror</span>
+          </div>
+          <div class="project-body">
+            <h3 class="project-title">The Forgotten</h3>
+            <p class="project-text">
+              An atmospheric action‑adventure where ancient secrets, abandoned ruins, and creatures from the dark await the brave.
+            </p>
+            <div class="project-actions" role="group" aria-label="The Forgotten actions">
+              <a class="btn-solid" href="#the-forgotten">
+                <!-- Arrow icon -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Details
+              </a>
+              <a class="btn-ghost" target="_blank" rel="noopener noreferrer"
+                 href="https://drive.google.com/file/d/1zks4IOI5bHjSbVoQLxjZu23NBAH7n8m9/view?usp=drive_link">
+                <!-- Download icon -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 3v12m0 0l4-4m-4 4l-4-4M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Download DEMO
+              </a>
+            </div>
+
+            <!-- Details block (like your sample) -->
+            <section id="the-forgotten" class="project-details" aria-label="The Forgotten description">
+              <div>
+                <strong>Release Date:</strong> January 11, 2025
+              </div>
+              <p>
+                <strong>Tone & Atmosphere:</strong> explore forsaken locations, solve cryptic puzzles, and confront otherworldly entities lurking in the shadows.
+              </p>
+              <div class="shots" aria-label="Screenshots">
+                <img src="https://i.imgur.com/lLGHQNV.png" alt="The Forgotten — desk room" loading="lazy" decoding="async">
+                <img src="https://i.imgur.com/DuMamDp.png" alt="The Forgotten — monster in the dark" loading="lazy" decoding="async">
+                <img src="https://i.imgur.com/KYeSnXb.png" alt="The Forgotten — creature close-up" loading="lazy" decoding="async">
+                <img src="https://i.imgur.com/GmnAaIj.png" alt="The Forgotten — main hall" loading="lazy" decoding="async">
+              </div>
+              <p class="project-text">
+                Subtle lighting and audio design deepen immersion. Try the free DEMO to feel the gameplay and mood ahead of release.
+              </p>
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER / SOCIALS -->
+  <footer id="contact" class="container">
+    <div class="divider" aria-hidden="true"></div>
+    <h2 class="section-title">Contact</h2>
+    <p class="section-sub">I’m open to feedback and collaboration. Follow and reach out here:</p>
+    <div class="socials" role="list" aria-label="Social links">
+      <a class="social-link" role="listitem" target="_blank" rel="noopener noreferrer" href="https://t.me/monoglashyiz" aria-label="Telegram">
+        <!-- Telegram SVG -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21.5 4.5l-19 7 5.2 2 2.9 6.3 3.5-3.7 5.6 4.2 1.8-15.8z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/>
+        </svg>
+        Telegram
+      </a>
+      <a class="social-link" role="listitem" target="_blank" rel="noopener noreferrer" href="https://youtube.com/@monoglashyiz?si=SS2FexgQDcYijqHm" aria-label="YouTube">
+        <!-- YouTube SVG -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M23 12s0-4.2-.54-6.1a3.2 3.2 0 0 0-2.25-2.25C18.3 3.1 12 3.1 12 3.1s-6.3 0-8.2.55A3.2 3.2 0 0 0 1.55 5.9C1 7.8 1 12 1 12s0 4.2.55 6.1a3.2 3.2 0 0 0 2.25 2.25c1.9.55 8.2.55 8.2.55s6.3 0 8.21-.55a3.2 3.2 0 0 0 2.25-2.25C23 16.2 23 12 23 12z" stroke="currentColor" stroke-width="1.2" />
+          <path d="M10 15.5v-7l6 3.5-6 3.5z" fill="currentColor" />
+        </svg>
+        YouTube
+      </a>
+    </div>
+
+  <script>
+    // ====== Settings ======
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ====== Avatar fallback if image fails ======
+    (function avatarFallback(){
+      const avatar = document.querySelector('.avatar');
+      if(!avatar) return;
+      avatar.addEventListener('error', () => {
+        const svg =
+          `<svg xmlns='http://www.w3.org/2000/svg' width='156' height='156'>
+            <defs>
+              <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+                <stop offset='0%' stop-color='#69f0ae'/>
+                <stop offset='100%' stop-color='#53e0ff'/>
+              </linearGradient>
+            </defs>
+            <rect width='100%' height='100%' fill='#0f1115'/>
+            <rect x='6' y='6' width='144' height='144' rx='12' ry='12' fill='url(#g)' opacity='0.16'/>
+            <text x='50%' y='54%' text-anchor='middle' font-family='Space Grotesk, Inter, Arial, sans-serif' font-size='22' fill='#e8eef5'>Mono</text>
+            <text x='50%' y='74%' text-anchor='middle' font-family='Space Grotesk, Inter, Arial, sans-serif' font-size='18' fill='#9aa4b2'>GlaShyiz</text>
+          </svg>`;
+        avatar.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+      }, { once: true });
+    })();
+
+    // ====== Per-letter brand reveal ======
+    (function brandLetters(){
+      const brand = document.querySelector('.brand');
+      const textEl = brand.querySelector('.brand-text');
+      const text = textEl.textContent;
+      textEl.remove();
+
+      const frag = document.createDocumentFragment();
+      for(const ch of text){
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = ch;
+        frag.appendChild(span);
+      }
+      brand.appendChild(frag);
+
+      const chars = brand.querySelectorAll('.char');
+      chars.forEach((el, i) => {
+        if(prefersReduced){
+          el.style.opacity = 1; el.style.transform = 'none'; el.style.filter = 'none';
+        }else{
+          const d = 40 + i * 36;
+          setTimeout(() => el.classList.add('revealed'), d);
+        }
+      });
+    })();
+
+    // ====== Starfield canvas ======
+    (function starfield(){
+      const canvas = document.getElementById('stars');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      let w, h, ratio;
+      let stars = [];
+      let running = !prefersReduced;
+
+      function resize(){
+        ratio = window.devicePixelRatio || 1;
+        w = window.innerWidth; h = window.innerHeight;
+        canvas.width = w * ratio;
+        canvas.height = h * ratio;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+        // Regenerate stars relative to area
+        const count = Math.min(350, Math.floor(w*h / 8000));
+        stars = new Array(count).fill(0).map(() => makeStar());
+      }
+
+      function makeStar(){
+        return {
+          x: Math.random()*w,
+          y: Math.random()*h,
+          r: Math.random()*1.2 + 0.2,
+          tw: Math.random()*Math.PI*2,
+          spdX: (Math.random()-0.5)*0.02,
+          spdY: (Math.random()-0.5)*0.02
+        };
+      }
+
+      function draw(){
+        if(!running) return;
+        ctx.clearRect(0,0,w,h);
+        for(const s of stars){
+          s.tw += 0.02;
+          s.x += s.spdX; s.y += s.spdY;
+          if(s.x<0) s.x=w; if(s.x>w) s.x=0;
+          if(s.y<0) s.y=h; if(s.y>h) s.y=0;
+
+          const alpha = 0.55 + Math.sin(s.tw)*0.45;
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+          const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*3);
+          grad.addColorStop(0, 'rgba(105,240,174,0.9)');
+          grad.addColorStop(1, 'rgba(83,224,255,0.0)');
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      if(!prefersReduced){ draw(); }
+      window.addEventListener('resize', resize, { passive: true });
+    })();
+
+    // ====== Cursor glow (drives .vignette) ======
+    (function cursorGlow(){
+      if(prefersReduced) return;
+      const vignette = document.querySelector('.vignette');
+      function move(e){
+        const x = (e.clientX || (e.touches && e.touches[0]?.clientX) || window.innerWidth/2);
+        const y = (e.clientY || (e.touches && e.touches[0]?.clientY) || window.innerHeight/2);
+        vignette.style.setProperty('--mx', x + 'px');
+        vignette.style.setProperty('--my', y + 'px');
+      }
+      window.addEventListener('mousemove', move, { passive: true });
+      window.addEventListener('touchmove', move, { passive: true });
+      move({ clientX: window.innerWidth/2, clientY: window.innerHeight/2 });
+    })();
+
+    // ====== Tilt cards ======
+    (function tiltCards(){
+      const cards = document.querySelectorAll('[data-tilt]');
+      cards.forEach(card => {
+        let rect;
+        function onEnter(){ rect = card.getBoundingClientRect(); }
+        function onMove(e){
+          if(prefersReduced) return;
+          const x = (e.clientX ?? e.touches?.[0]?.clientX ?? 0) - rect.left;
+          const y = (e.clientY ?? e.touches?.[0]?.clientY ?? 0) - rect.top;
+          const rx = ((y / rect.height) - .5) * 6;
+          const ry = ((x / rect.width) - .5) * -6;
+          card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
+        }
+        function onLeave(){ card.style.transform = ''; }
+        card.addEventListener('mouseenter', onEnter);
+        card.addEventListener('mousemove', onMove);
+        card.addEventListener('mouseleave', onLeave);
+        card.addEventListener('touchstart', onEnter, { passive: true });
+        card.addEventListener('touchmove', onMove, { passive: true });
+        card.addEventListener('touchend', onLeave);
+      });
+    })();
+
+    // ====== Year in footer ======
+    (function setYear(){
+      const yr = document.getElementById('year');
+      if (yr) yr.textContent = new Date().getFullYear();
+    })();
+
+    // ====== Smooth anchor scroll ======
+    (function smoothAnchors(){
+      const links = document.querySelectorAll('a[href^="#"]');
+      links.forEach(a => {
+        a.addEventListener('click', e => {
+          const id = a.getAttribute('href').slice(1);
+          if(!id) return;
+          const el = document.getElementById(id);
+          if(!el) return;
+          e.preventDefault();
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
